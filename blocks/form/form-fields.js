@@ -2,9 +2,7 @@ import { toClassName } from '../../scripts/aem.js';
 
 function createFieldWrapper(fd) {
   const fieldWrapper = document.createElement('div');
-  if (fd.Style) {
-    fieldWrapper.className = fd.Style;
-  }
+  if (fd.Style) fieldWrapper.className = fd.Style;
   fieldWrapper.classList.add('field-wrapper', `${fd.Type}-wrapper`);
 
   fieldWrapper.dataset.fieldset = fd.Fieldset;
@@ -26,6 +24,9 @@ function createLabel(fd) {
   label.id = generateFieldId(fd, '-label');
   label.textContent = fd.Label || fd.Name;
   label.setAttribute('for', fd.Id);
+  if (fd.Mandatory.toLowerCase() === 'true' || fd.Mandatory.toLowerCase() === 'x') {
+    label.dataset.required = true;
+  }
   return label;
 }
 
@@ -105,7 +106,7 @@ const createSelect = async (fd) => {
 
   const fieldWrapper = createFieldWrapper(fd);
   fieldWrapper.append(select);
-  fieldWrapper.append(createLabel(fd));
+  fieldWrapper.prepend(createLabel(fd));
 
   return { field: select, fieldWrapper };
 };
@@ -135,7 +136,7 @@ const createTextArea = (fd) => {
   const label = createLabel(fd);
   field.setAttribute('aria-labelledby', label.id);
   fieldWrapper.append(field);
-  fieldWrapper.append(label);
+  fieldWrapper.prepend(label);
 
   return { field, fieldWrapper };
 };
@@ -149,7 +150,11 @@ const createInput = (fd) => {
   const label = createLabel(fd);
   field.setAttribute('aria-labelledby', label.id);
   fieldWrapper.append(field);
-  fieldWrapper.append(label);
+  if (fd.Type === 'radio' || fd.Type === 'checkbox') {
+    fieldWrapper.append(label);
+  } else {
+    fieldWrapper.prepend(label);
+  }
 
   return { field, fieldWrapper };
 };
@@ -173,9 +178,7 @@ const createFieldset = (fd) => {
 const createToggle = (fd) => {
   const { field, fieldWrapper } = createInput(fd);
   field.type = 'checkbox';
-  if (!field.value) {
-    field.value = 'on';
-  }
+  if (!field.value) field.value = 'on';
   field.classList.add('toggle');
   fieldWrapper.classList.add('selection-wrapper');
 
@@ -196,9 +199,7 @@ const createToggle = (fd) => {
 
 const createCheckbox = (fd) => {
   const { field, fieldWrapper } = createInput(fd);
-  if (!field.value) {
-    field.value = 'checked';
-  }
+  if (!field.value) field.value = 'checked';
   fieldWrapper.classList.add('selection-wrapper');
 
   return { field, fieldWrapper };
@@ -206,9 +207,7 @@ const createCheckbox = (fd) => {
 
 const createRadio = (fd) => {
   const { field, fieldWrapper } = createInput(fd);
-  if (!field.value) {
-    field.value = fd.Label || 'on';
-  }
+  if (!field.value) field.value = fd.Label || 'on';
   fieldWrapper.classList.add('selection-wrapper');
 
   return { field, fieldWrapper };
